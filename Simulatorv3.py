@@ -13,6 +13,23 @@ class agent():
         self.segregation = 0
         self.type = type
 
+    def getDir(self, currentNode, targetNode):
+        pass
+
+    def checkMove(self):
+        pass
+
+    def getMove(self, nodes):
+        pass
+
+    def updateMove(self, nodes):
+        pass
+
+    def getSegregation(self, board):
+        pass
+
+    
+
 def getSize():
     size = 0
     while True:
@@ -35,7 +52,7 @@ def getBoundaries():
             else:
                 return bias
         except:
-            print("Numbers only")
+            print("Numbers only") 
 
 
 
@@ -178,7 +195,14 @@ def updateUnhappy(board, size, bias, ratio, i, j, unhappy):
                     pass
     return unhappy
 
-def moveCell(blanks, board, i, j):
+def moveCell(blanks, board, i, j, size, bias, ratio, agents):
+    for z in agents:
+        if z.coordinates == [i, j]:
+            if checkHappy(size, board, z.type, bias, i, j, ratio):
+                z.unhappyMoves == 0
+            else:
+                z.unhappyMoves += 1
+    
     moveto = random.choice(blanks)
     blanks.remove(moveto)
     blanks.append((i, j))
@@ -228,7 +252,7 @@ def main():
 
         if len(unhappy) != 0:
             i, j = selectAgent(unhappy) #SELECTS THE COORDINATES NOT THE ACTUAL THING
-            board, blanks, movetox, movetoy = moveCell(blanks, board, i, j)
+            board, blanks, movetox, movetoy = moveCell(blanks, board, i, j, size, bias, ratio, agents)
             unhappy = updateUnhappy(board, size, bias, ratio, i, j, unhappy)
             unhappy.remove((i, j))
             unhappy = updateUnhappy(board, size, bias, ratio, movetox, movetoy, unhappy)
