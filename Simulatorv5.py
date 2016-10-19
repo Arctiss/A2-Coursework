@@ -181,7 +181,9 @@ def checkHappy(size, board, current, bias, i, j, ratio):
             else:
                 if (i+x) < 0 or (i+x) > size-1 or (j+y) > size-1 or (j+y) < 0 or board[i+x][j+y] == "B":
                     adjacent -= 1
+                    
                 else:
+                
                     if board[i+x][j+y] == current:
                         similar += 1
 
@@ -200,7 +202,7 @@ def updateUnhappy(board, size, bias, ratio, i, j, unhappy):
     adjacent = 8
     for x in (-1, 0, 1):
         for y in (-1, 0, 1):
-            if (x == 0 and y == 0) or (i+x) <0 or (j+y) < 0:
+            if  (i+x) <0 or (j+y) < 0:
                 pass
             else:
                 try:
@@ -219,14 +221,15 @@ def updateUnhappy(board, size, bias, ratio, i, j, unhappy):
 
 
 def moveCell(blanks, board, i, j, size, bias, ratio, agents):
+    moveto = random.choice(blanks)
+    
     for z in agents:
         if z.coordinates == [i, j]:
-            if checkHappy(size, board, z.type, bias, i, j, ratio):
+            if checkHappy(size, board, z.type, bias, moveto[0], moveto[1], ratio):
                 z.unhappyMoves == 0
             else:
                 z.unhappyMoves += 1
                 
-    moveto = random.choice(blanks)
     blanks.remove(moveto)
     blanks.append((i, j))
 
@@ -243,7 +246,6 @@ def switchNode(nodes, activeNode):
                         activeNode = nodes[i+1]
                 except:
                         activeNode = nodes[0]
-                
                 return activeNode
 
 def main():
@@ -291,6 +293,10 @@ def main():
                     k = (boardSize/activeNode.size)
 
         for z in nodes:
+            if z == activeNode:
+                    drawBoard(z.board, colours, screen, k, boardSize, z.size)
+                    
+                    pygame.display.update()
             if len(z.unhappy) != 0: #If unhappy
 
                 z.happy = False
@@ -306,10 +312,7 @@ def main():
                 z.unhappy = updateUnhappy(z.board, z.size, z.bias, z.ratio, movetox, movetoy, z.unhappy)
 
             
-                if z == activeNode:
-                    drawBoard(z.board, colours, screen, k, boardSize, z.size)
-                    
-                    pygame.display.update()
+                
                     
             else: #If happy
                 
