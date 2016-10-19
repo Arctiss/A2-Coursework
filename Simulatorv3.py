@@ -1,7 +1,7 @@
 import random, math, pygame, time, sys
 
 class agent():
-    def __init__(self, coordinates, node, type):
+    def __init__(self, coordinates, node, aType):
 
         self.coordinates = coordinates
         self.currentNode = node
@@ -11,7 +11,7 @@ class agent():
         self.threshold = 3
         self.route = []
         self.segregation = 0
-        self.type = type
+        self.type = aType
 
     def getDir(self, currentNode, targetNode):
         pass
@@ -114,7 +114,6 @@ def populateBoard(size, ratio, agents):
                 agents.append(a)
 
         board.append(new)
-    print(agents)
     return board, blanks
 
 
@@ -190,7 +189,8 @@ def updateUnhappy(board, size, bias, ratio, i, j, unhappy):
                     if checkHappy(size, board, current, bias, i, j, ratio):
                         pass
                     else:
-                        unhappy.append((i+x, j+y))
+                        if (i+x, j+y) not in unhappy:
+                            unhappy.append((i+x, j+y))
                 except:
                     pass
     return unhappy
@@ -202,6 +202,7 @@ def moveCell(blanks, board, i, j, size, bias, ratio, agents):
                 z.unhappyMoves == 0
             else:
                 z.unhappyMoves += 1
+            
     
     moveto = random.choice(blanks)
     blanks.remove(moveto)
@@ -255,7 +256,6 @@ def main():
             board, blanks, movetox, movetoy = moveCell(blanks, board, i, j, size, bias, ratio, agents)
             unhappy = updateUnhappy(board, size, bias, ratio, i, j, unhappy)
             unhappy.remove((i, j))
-            unhappy = updateUnhappy(board, size, bias, ratio, movetox, movetoy, unhappy)
             drawBoard(board, colours, screen, k, boardSize, size)
             pygame.display.update()
             #time.sleep(0.05)
