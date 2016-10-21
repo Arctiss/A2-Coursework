@@ -78,13 +78,13 @@ def getDiversity():
     diversity = 0
     while True:
         try:
-            bias = int(input("What percentage different to be happy? "))
+            diversity = int(input("What percentage different to be happy? "))
             if diversity < 0 or diversity > 100:
                 print("Numbers between 0 and 100 only")
             else:
                 return diversity
         except:
-            print("Numbers only") 
+            print("Numbers only")
 
 
 def getGroups():
@@ -201,9 +201,7 @@ def checkHappy(size, board, current, bias, i, j, ratio, diversity):
 
     if adjacent > 0:
         percentage = (similar/adjacent)*100
-        diffPercent = ((adjacent-similar)/adjacent)*100
-                
-        if percentage < bias and diffPercent < diversity:
+        if percentage < bias or (100-percentage) < diversity:
             return False
         else:
             return True
@@ -261,12 +259,20 @@ def switchNode(nodes, activeNode):
                         activeNode = nodes[0]
                 return activeNode
 
+def drawUI(boardSize, width, height, screen):
+    pygame.draw.rect(screen, (100, 100, 100), (boardSize, 0, (width-boardSize), boardSize))
+
+    pygame.draw.rect(screen, (100, 150, 0), (0, boardSize, width, boardSize))
+
 def main():
 
     
     nodes = []
     colours = {0: (252, 183, 50), 1: (2, 120, 120), 2: (243, 115, 56), 3:(194, 35, 38), 4: (128, 22, 56)}
-    boardSize = 800
+    boardSize = 700
+
+    width = boardSize + 200
+    height = boardSize + 100
 
     totalNodes = random.randint(2, 4)
     print(totalNodes)
@@ -289,7 +295,7 @@ def main():
         
     activeNode = nodes[0]
 
-    screen = pygame.display.set_mode((boardSize,boardSize))
+    screen = pygame.display.set_mode((width,height))
     
     k = (boardSize/activeNode.size)
 
@@ -306,11 +312,14 @@ def main():
                     activeNode = switchNode(nodes, activeNode)
                     k = (boardSize/activeNode.size)
 
+
+
         for z in nodes:
             if z == activeNode:
                     drawBoard(z.board, colours, screen, k, boardSize, z.size)
-                    
+                    drawUI(boardSize, width, height, screen)
                     pygame.display.update()
+
             if len(z.unhappy) != 0: #If unhappy
 
                 z.happy = False
@@ -341,14 +350,14 @@ def main():
                                             
                             print("All happy")
                             pygame.image.save(screen, "screenshot.jpeg")
-
-                            for event in pygame.event.get():
-                                if event.type == pygame.KEYDOWN:
-                                    if event.key == pygame.K_SPACE:
-                                        sys.exit()
-                                    if event.key == pygame.K_w:
-                                        activeNode = switchNode(nodes, activeNode)
-                                        k = (boardSize/activeNode.size)
+                            while True:
+                                for event in pygame.event.get():
+                                    if event.type == pygame.KEYDOWN:
+                                        if event.key == pygame.K_SPACE:
+                                            sys.exit()
+                                        if event.key == pygame.K_w:
+                                            activeNode = switchNode(nodes, activeNode)
+                                            k = (boardSize/activeNode.size)
                                     
 
 
