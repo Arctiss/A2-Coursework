@@ -1,4 +1,4 @@
-import random, math, pygame, time, sys
+import random, math, pygame, time, sys, pgu
 
 class node():   
     def __init__(self, size, board, unhappy, blanks, bias, ratio, groups, agents, diversity, coordinates, boardSize, radius):
