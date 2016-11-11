@@ -25,8 +25,7 @@ class node():
 
     def drawSelf(self, screen):
         pygame.draw.circle(screen, self.colour,(self.xPos, self.yPos), self.radius)
-        
-    
+
 class button():
     def __init__(self, coordinates, width, height, colour, text):
 
@@ -58,9 +57,7 @@ class button():
             self.text = self.font.render(self.function, 1, (0,0,0))
             self.textRect = self.text.get_rect(center=self.rect.center)
         return paused
-            
 
-        
 class agent():
     def __init__(self, coordinates, node, aType):
 
@@ -89,8 +86,6 @@ class agent():
     def getSegregation(self, board):
         pass
 
-    
-
 def getSize():
     size = 0
     while True:
@@ -115,7 +110,6 @@ def getBias():
         except:
             print("Numbers only")
 
-
 def getDiversity():
     diversity = 0
     while True:
@@ -128,7 +122,6 @@ def getDiversity():
         except:
             print("Numbers only")
 
-
 def getGroups():
     groups = 0
     while True:
@@ -140,7 +133,6 @@ def getGroups():
                 return groups
         except:
             print("Numbers only")
-
 
 def getRatio(groups, size):
     ratio = []
@@ -169,7 +161,6 @@ def getRatio(groups, size):
 
     return ratio
 
-
 def populateBoard(size, ratio, agents):
     board = []
     blanks = []
@@ -189,9 +180,6 @@ def populateBoard(size, ratio, agents):
         board.append(new)
     return board, blanks, agents
 
-
-
-
 def drawBoard(board, colours, screen, k, boardSize, size):
     screen.fill(pygame.Color(20,20,20))
 
@@ -201,7 +189,6 @@ def drawBoard(board, colours, screen, k, boardSize, size):
                 #pygame.draw.rect(screen,colours[x2],(int(y2*k), int(y*k), int(k)-1, int(k)-1))
 
                 pygame.draw.circle(screen,colours[x2],(int(y2*k)+int(k/2), int(y*k)+int(k/2)), int(k/2)-1)
-
 
 def getUnhappy(board, size, bias, ratio, diversity):
     unhappy = []
@@ -219,11 +206,9 @@ def getUnhappy(board, size, bias, ratio, diversity):
 
     return unhappy
 
-
 def selectAgent(unhappy):
     i = random.randint(0, len(unhappy)-1)
     return unhappy[i][0], unhappy[i][1]
-
 
 def checkHappy(size, board, current, bias, i, j, ratio, diversity):
     similar = 0
@@ -272,7 +257,6 @@ def updateUnhappy(board, size, bias, ratio, i, j, unhappy, diversity):
                     pass
     return unhappy
 
-
 def moveCell(blanks, board, i, j, size, bias, ratio, agents, diversity):
     moveto = random.choice(blanks)
     
@@ -301,13 +285,26 @@ def switchNode(nodes, activeNode):
                         activeNode = nodes[0]
                 return activeNode
 
-
-def drawUI(boardSize, width, height, screen, nodes, buttons):
-    pygame.draw.rect(screen, (100, 100, 100), (boardSize, 0, (width-boardSize), boardSize))
+def drawUI(boardSize, width, height, screen, nodes, buttons, activeNode):
+    pygame.draw.rect(screen, (32, 32, 32), (boardSize, 0, (width-boardSize), boardSize))
 
     pygame.draw.rect(screen, (0, 0, 0), (boardSize, 0, (width-boardSize), width-boardSize), 5)
 
-    pygame.draw.rect(screen, (100, 150, 0), (0, boardSize, width, boardSize))
+    pygame.draw.rect(screen, (255, 255, 255), (0, boardSize, width, boardSize))
+
+    font = pygame.font.SysFont("monospace", 30)
+    texts = []
+    text = font.render("Size: "+str(activeNode.size), 1, (0, 0 , 0))
+    texts.append(text)
+    text = font.render("Bias factor: "+str(activeNode.bias), 1, (0, 0, 0))
+    texts.append(text)
+    text = font.render("Diversity factor: "+str(activeNode.diversity), 1, (0, 0, 0))
+    texts.append(text)
+
+    for i in range(0, len(texts)):
+        #pygame.rect(screen, (32, 32, 32),(boardSize+10, 50+i*50, 180, 70))
+        #textRect = texts[i].get_rect(center=texts[i].get_rect.center)
+        #screen.blit(texts[i], self.textRect)
 
     for i in nodes:
         i.drawSelf(screen)
@@ -321,7 +318,6 @@ def defineButtons(boardSize):
     buttons.append(b)
     return buttons
 
-    
 def main():
     pygame.init()
     
@@ -336,7 +332,7 @@ def main():
 
     buttons = defineButtons(boardSize)
 
-    totalNodes = random.randint(2, 4)
+    totalNodes = random.randint(2, 5)
     print(totalNodes)
 
     for z in range(0, totalNodes):
@@ -390,7 +386,7 @@ def main():
         for z in nodes:
             if z == activeNode:
                 drawBoard(z.board, colours, screen, k, boardSize, z.size)
-                drawUI(boardSize, width, height, screen, nodes, buttons)
+                drawUI(boardSize, width, height, screen, nodes, buttons, activeNode)
                 pygame.display.update()
 
             if paused == False:
@@ -441,7 +437,7 @@ def main():
                                                 n.colour = (255, 0, 0)
                                                 k = (boardSize/activeNode.size)
                                                 drawBoard(z.board, colours, screen, k, boardSize, z.size)
-                                                drawUI(boardSize, width, height, screen, nodes, buttons)
+                                                drawUI(boardSize, width, height, screen, nodes, buttons, activeNode)
                                                 pygame.display.update()
 
 
