@@ -20,11 +20,47 @@ class node():
         self.agents = agents
         self.colour = (255, 255, 255)
         self.radius = radius
-        
+        self.happy = 0
+
         self.rect = pygame.Rect((self.xPos-self.radius),(self.yPos-self.radius),(self.radius*2),(self.radius*2))
 
     def drawSelf(self, screen):
         pygame.draw.circle(screen, self.colour,(self.xPos, self.yPos), self.radius)
+
+    def getHappy(self):
+        self.happy = int(100 - (len(self.unhappy)/self.squares * 100))
+
+class agent():
+    def __init__(self, coordinates, node, aType):
+
+        self.coordinates = coordinates
+        self.currentNode = node
+        self.speed = 5
+        self.targetNode = None
+        self.unhappyMoves = 0
+        self.threshold = 3
+        self.route = []
+        self.segregation = 0
+        self.type = aType
+        self.unhappy = False
+
+    def getDir(self, currentNode, targetNode):
+        pass
+
+    def checkMove(self):
+        pass
+
+    def getMove(self, nodes):
+        pass
+
+    def updateMove(self, nodes):
+        pass
+
+    def getSegregation(self, board):
+        pass
+
+    def returnStatus(self):
+        return self.unhappy
 
 class button():
     def __init__(self, coordinates, width, height, colour, text):
@@ -50,7 +86,7 @@ class button():
             self.function = "Play"
             self.text = self.font.render(self.function, 1, (0,0,0))
             self.textRect = self.text.get_rect(center=self.rect.center)
-            
+
         elif self.function == "Play":
             paused = False
             self.function = "Pause"
@@ -58,33 +94,7 @@ class button():
             self.textRect = self.text.get_rect(center=self.rect.center)
         return paused
 
-class agent():
-    def __init__(self, coordinates, node, aType):
 
-        self.coordinates = coordinates
-        self.currentNode = node
-        self.speed = 5
-        self.targetNode = None
-        self.unhappyMoves = 0
-        self.threshold = 3
-        self.route = []
-        self.segregation = 0
-        self.type = aType
-
-    def getDir(self, currentNode, targetNode):
-        pass
-
-    def checkMove(self):
-        pass
-
-    def getMove(self, nodes):
-        pass
-
-    def updateMove(self, nodes):
-        pass
-
-    def getSegregation(self, board):
-        pass
 
 def getSize():
     size = 0
@@ -166,18 +176,18 @@ def populateBoard(size, ratio, agents):
     blanks = []
     ratio2 = ratio.copy()
     for i in range (0, size):
-        new = []
+        newLine = []
         for j in range (0, size):
             bob = random.choice(ratio2)
             if bob == "B":
                 blanks.append((i, j))
             ratio2.remove(bob)
-            new.append(bob)
+            newLine.append(bob)
             if bob != "B":
                 a = agent([i,j], None, bob)
                 agents.append(a)
 
-        board.append(new)
+        board.append(newLine)
     return board, blanks, agents
 
 def drawBoard(board, colours, screen, k, boardSize, size):
@@ -208,6 +218,7 @@ def getUnhappy(board, size, bias, ratio, diversity):
 
 def selectAgent(unhappy):
     i = random.randint(0, len(unhappy)-1)
+
     return unhappy[i][0], unhappy[i][1]
 
 def checkHappy(size, board, current, bias, i, j, ratio, diversity):
@@ -220,11 +231,11 @@ def checkHappy(size, board, current, bias, i, j, ratio, diversity):
             else:
                 if (i+x) < 0 or (i+x) > size-1 or (j+y) > size-1 or (j+y) < 0 or board[i+x][j+y] == "B":
                     adjacent -= 1
-                    
+
                 else:
-                
+
                     if board[i+x][j+y] == current:
-                        similar += 1                        
+                        similar += 1
 
     if adjacent > 0:
         percentage = (similar/adjacent)*100
@@ -235,7 +246,7 @@ def checkHappy(size, board, current, bias, i, j, ratio, diversity):
     else:
         return False
 
-def updateUnhappy(board, size, bias, ratio, i, j, unhappy, diversity):
+def updateUnhappy(board, size, bias, ratio, i, j, unhappy, diversity, agent):
     similar = 0
     adjacent = 8
     for x in (-1, 0, 1):
@@ -249,8 +260,10 @@ def updateUnhappy(board, size, bias, ratio, i, j, unhappy, diversity):
                         pass
                     else:
                         if checkHappy(size, board, current, bias, i, j, ratio, diversity):
+                            agent.unhappy = False
                             pass
                         else:
+                            agent.unhappy = True
                             if (i+x, j+y) not in unhappy:
                                 unhappy.append((i+x, j+y))
                 except:
@@ -259,19 +272,19 @@ def updateUnhappy(board, size, bias, ratio, i, j, unhappy, diversity):
 
 def moveCell(blanks, board, i, j, size, bias, ratio, agents, diversity):
     moveto = random.choice(blanks)
-    
+
     for z in agents:
         if z.coordinates == [i, j]:
             if checkHappy(size, board, z.type, bias, moveto[0], moveto[1], ratio, diversity):
                 z.unhappyMoves == 0
             else:
                 z.unhappyMoves += 1
-                
+
     blanks.remove(moveto)
     blanks.append((i, j))
 
     temp = board[i][j]
-            
+
     board[i][j] = "B"
     board[moveto[0]][moveto[1]] = temp
     return board, blanks, moveto[0], moveto[1]
@@ -300,23 +313,22 @@ def drawUI(boardSize, width, height, screen, nodes, buttons, activeNode):
     texts.append(text)
     text = font.render("Diversity %: "+str(activeNode.diversity), 1, (255, 255 , 255))
     texts.append(text)
-
-    positions = [[boardSize + 10, 250],[boardSize + 10, 300],[boardSize + 10, 350]]
+    texts.append("_")
+    text = font.render("Happiness % bar:", 1, (255, 255, 255))
+    texts.append(text)
 
     for i in range(0, len(texts)):
-        textRect = texts[i].get_rect(topleft=positions[i])
-        screen.blit(texts[i], textRect)
+        try:
+            textRect = texts[i].get_rect(topleft=[boardSize + 10, 250 + 50*i])
+            screen.blit(texts[i], textRect)
+        except:
+            pass
+
+    pygame.draw.rect(screen, (0, 150, 0), (boardSize + 10, 500, int(180/100*activeNode.happy), 20))
+    pygame.draw.rect(screen, (0, 0, 0), (boardSize + 10, 500, 180, 20), 5)
 
 
 
-    def drawSelf(self, screen):
-        pygame.draw.rect(screen, self.colour,(self.xPos, self.yPos, self.width, self.height))
-        screen.blit(self.text, self.textRect)
-
-
-
-
-        
     for i in nodes:
         i.drawSelf(screen)
 
@@ -331,7 +343,7 @@ def defineButtons(boardSize):
 
 def main():
     pygame.init()
-    
+
     nodes = []
     colours = {0: (252, 183, 50), 1: (2, 120, 120), 2: (243, 115, 56), 3:(194, 35, 38), 4: (128, 22, 56)}
     boardSize = 700
@@ -343,12 +355,12 @@ def main():
 
     buttons = defineButtons(boardSize)
 
-    totalNodes = random.randint(2, 2)
+    totalNodes = random.randint(1,1 )
     print(totalNodes)
 
     for z in range(0, totalNodes):
         agents = []
-    
+
         size = getSize()
         bias = getBias()
         diversity = getDiversity()
@@ -361,12 +373,12 @@ def main():
 
         n = node(size, board, unhappy, blanks, bias, ratio, groups, agents, diversity, (random.randint(radius, 200-radius),random.randint(radius, 200-radius)), boardSize, radius)
         nodes.append(n)
-        
+
     activeNode = nodes[0]
     activeNode.colour = (255, 0, 0)
 
     screen = pygame.display.set_mode((width,height))
-    
+
     k = (boardSize/activeNode.size)
 
     allHappy = 0
@@ -379,11 +391,11 @@ def main():
                 pygame.quit()
                 sys.exit()
 
-        
+
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 pos = pygame.mouse.get_pos()
                 for n in nodes:
-                                
+
                     if n.rect.collidepoint(pos):
                         activeNode.colour = (255, 255, 255)
                         activeNode = n
@@ -395,42 +407,43 @@ def main():
                         paused = b.onClick()
 
         for z in nodes:
+            z.getHappy()
             if z == activeNode:
                 drawBoard(z.board, colours, screen, k, boardSize, z.size)
                 drawUI(boardSize, width, height, screen, nodes, buttons, activeNode)
                 pygame.display.update()
 
             if paused == False:
-                
+
 
                 if len(z.unhappy) != 0: #If unhappy
 
                     z.happy = False
-                    
+
                     i, j = selectAgent(z.unhappy) #SELECTS THE COORDINATES NOT THE ACTUAL THING
-                    
+
                     z.board, z.blanks, movetox, movetoy = moveCell(z.blanks, z.board, i, j, z.size, z.bias, z.ratio, z.agents, z.diversity)
-                    
-                    z.unhappy = updateUnhappy(z.board, z.size, z.bias, z.ratio, i, j, z.unhappy, z.diversity)
-                    
+
+                    z.unhappy = updateUnhappy(z.board, z.size, z.bias, z.ratio, i, j, z.unhappy, z.diversity, agent)
+
                     z.unhappy.remove((i, j))
 
-                    z.unhappy = updateUnhappy(z.board, z.size, z.bias, z.ratio, movetox, movetoy, z.unhappy, z.diversity)
+                    z.unhappy = updateUnhappy(z.board, z.size, z.bias, z.ratio, movetox, movetoy, z.unhappy, z.diversity, agent)
 
-                
-                    
-                        
+
+
+
                 else: #If happy
-                    
+
                     allHappy = 0
-                    
+
                     z.happy = True
-                    
+
                     for y in nodes:
                         if y.happy== True:
                             allHappy += 1
                             if allHappy == totalNodes:
-                                                
+
                                 print("All happy")
                                 pygame.image.save(screen, "screenshot.jpeg")
                                 for event in pygame.event.get():
