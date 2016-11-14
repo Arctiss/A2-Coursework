@@ -65,20 +65,20 @@ class agent():
 class button():
     def __init__(self, coordinates, width, height, colour, text):
 
-        self.xPos = coordinates[0]
-        self.yPos = coordinates[1]
-        self.width = width
-        self.height = height
-        self.colour = colour
-        self.rect = pygame.Rect(self.xPos, self.yPos, self.width, self.height)
+        self.image = pygame.Surface((width,height))
+        self.image.fill(colour)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (coordinates[0], coordinates[1])
+        
         self.font = pygame.font.SysFont("monospace", 45)
         self.function = text
         self.text = self.font.render(self.function, 1, (0,0,0))
         self.textRect = self.text.get_rect(center=self.rect.center)
 
     def drawSelf(self, screen):
-        pygame.draw.rect(screen, self.colour,(self.xPos, self.yPos, self.width, self.height))
-        screen.blit(self.text, self.textRect)
+        
+        screen.blit(self.image, self.rect)
+      #  screen.blit(self.text, self.textRect)
 
     def onClick(self):
         if self.function == "Pause":
@@ -92,6 +92,7 @@ class button():
             self.function = "Pause"
             self.text = self.font.render(self.function, 1, (0,0,0))
             self.textRect = self.text.get_rect(center=self.rect.center)
+        self.image.blit(self.text, self.rect)
         return paused
 
 
@@ -210,7 +211,8 @@ def getUnhappy(board, size, bias, ratio, diversity):
                 if checkHappy(size, board, current, bias, y, y2, ratio, diversity):
                     pass
                 else:
-                    unhappy.append((y, y2))
+                    if (y, y2) not in unhappy:
+                        unhappy.append((y, y2))
             else:
                 pass
 
