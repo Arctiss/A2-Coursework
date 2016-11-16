@@ -30,6 +30,25 @@ class node():
     def getHappy(self):
         self.happy = int(100 - (len(self.unhappy)/self.squares * 100))
 
+class graph():
+    def __init__(self, boardSize):
+        self.pointList = []
+        self.boardSize = boardSize
+
+    def addData(self, data):
+        for i in self.pointList:
+            i[0] += 35
+
+        self.pointList = [[0, self.boardSize+(150-(150/100)*data)]] + self.pointList
+        #self.pointList = [[0, data]] + self.pointList
+        if len(self.pointList) > 20:
+            self.pointList.pop()
+        print(self.pointList)
+       #time.sleep(0.1)
+    def drawSelf(self, screen):
+        try: pygame.draw.lines(screen, (255,0,0), False, self.pointList)
+        except: pass
+
 class agent():
     def __init__(self, coordinates, node, aType):
 
@@ -67,32 +86,37 @@ class button():
 
         self.image = pygame.Surface((width,height))
         self.image.fill(colour)
-        self.rect = self.image.get_rect()
-        self.rect.topleft = (coordinates[0], coordinates[1])
+        self.rect = self.image.get_rect(topleft = (coordinates[0], coordinates[1]))
+      #  self.rect.
+
+        self.colour = colour
         
         self.font = pygame.font.SysFont("monospace", 45)
         self.function = text
         self.text = self.font.render(self.function, 1, (0,0,0))
-        self.textRect = self.text.get_rect(center=self.rect.center)
+        
+        self.textRect = self.text.get_rect(center=(self.rect.width/2, self.rect.height/2))
+        
+        self.image.blit(self.text, self.textRect)
 
     def drawSelf(self, screen):
         
         screen.blit(self.image, self.rect)
-      #  screen.blit(self.text, self.textRect)
 
     def onClick(self):
         if self.function == "Pause":
             paused = True
             self.function = "Play"
-            self.text = self.font.render(self.function, 1, (0,0,0))
-            self.textRect = self.text.get_rect(center=self.rect.center)
 
         elif self.function == "Play":
             paused = False
             self.function = "Pause"
-            self.text = self.font.render(self.function, 1, (0,0,0))
-            self.textRect = self.text.get_rect(center=self.rect.center)
-        self.image.blit(self.text, self.rect)
+
+        self.image.fill(self.colour)
+        self.text = self.font.render(self.function, 1, (0,0,0))
+        self.textRect = self.text.get_rect(center=(self.rect.width/2, self.rect.height/2))
+        
+        self.image.blit(self.text, self.textRect)
         return paused
 
 
@@ -101,7 +125,7 @@ def getSize():
     size = 0
     while True:
         try:
-            size = int(input("How big would you like the board to be? "))
+            size = int(input("How big? "))
             if size <= 0 or size >= 101:
                 print("Numbers between 1 and 100 only")
             else:
@@ -197,7 +221,6 @@ def drawBoard(board, colours, screen, k, boardSize, size):
     for y, x in enumerate(board):
         for y2, x2 in enumerate(x):
             if x2 != "B":
-                #pygame.draw.rect(screen,colours[x2],(int(y2*k), int(y*k), int(k)-1, int(k)-1))
 
                 pygame.draw.circle(screen,colours[x2],(int(y2*k)+int(k/2), int(y*k)+int(k/2)), int(k/2)-1)
 
@@ -329,8 +352,6 @@ def drawUI(boardSize, width, height, screen, nodes, buttons, activeNode):
     pygame.draw.rect(screen, (0, 150, 0), (boardSize + 10, 500, int(180/100*activeNode.happy), 20))
     pygame.draw.rect(screen, (0, 0, 0), (boardSize + 10, 500, 180, 20), 5)
 
-
-
     for i in nodes:
         i.drawSelf(screen)
 
@@ -353,13 +374,13 @@ def main():
     radius = 20
 
     width = boardSize + 200
-    height = boardSize + 100
+    height = boardSize + 150
 
     buttons = defineButtons(boardSize)
 
-    totalNodes = random.randint(1,1 )
+    totalNodes = random.randint(3,3)
     print(totalNodes)
-
+    g = graph(boardSize)
     for z in range(0, totalNodes):
         agents = []
 
@@ -386,8 +407,9 @@ def main():
     allHappy = 0
 
     paused = False
-
+    timer = 0
     while True:
+        timer += 1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -408,11 +430,25 @@ def main():
                     if b.rect.collidepoint(pos):
                         paused = b.onClick()
 
+        if timer == 60:
+            tempTotal = 0
+            for i in nodes:
+                i.getHappy()
+                tempTotal += i.happy
+            g.addData(int(tempTotal/len(nodes)))
+            timer = 0
+
+
+
+
+
         for z in nodes:
             z.getHappy()
+
             if z == activeNode:
                 drawBoard(z.board, colours, screen, k, boardSize, z.size)
                 drawUI(boardSize, width, height, screen, nodes, buttons, activeNode)
+                g.drawSelf(screen)
                 pygame.display.update()
 
             if paused == False:
@@ -447,10 +483,11 @@ def main():
                             if allHappy == totalNodes:
 
                                 print("All happy")
-                                pygame.image.save(screen, "screenshot.jpeg")
+                                
                                 for event in pygame.event.get():
                                     if event.type == pygame.KEYDOWN:
                                         if event.key == pygame.K_SPACE:
+                                            pygame.image.save(screen, "screenshot.jpeg")
                                             sys.exit()
                                     elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                                         pos = pygame.mouse.get_pos()
@@ -465,6 +502,8 @@ def main():
                                                 drawBoard(z.board, colours, screen, k, boardSize, z.size)
                                                 drawUI(boardSize, width, height, screen, nodes, buttons, activeNode)
                                                 pygame.display.update()
+
+        
 
 
 
